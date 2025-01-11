@@ -46,7 +46,7 @@ spec:
     spec:
       containers:
         - name: influxdb
-          image: quay.io/influxdb/influxdb:2.7.0
+          image: docker.io/influxdb:2.7.0
           ports:
             - containerPort: 8086
           volumeMounts:
