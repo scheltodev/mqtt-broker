@@ -71,7 +71,7 @@ metadata:
   labels:
     app: influxdb
 spec:
-  type: ClusterIP
+  type: NodePort
   ports:
     - port: 80
       targetPort: 8086

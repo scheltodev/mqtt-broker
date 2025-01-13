@@ -50,6 +50,7 @@ metadata:
   name: mosquitto
   namespace: monitoring
 spec:
+  type: NodePort
   ports:
     - port: 1883
       targetPort: 1883
