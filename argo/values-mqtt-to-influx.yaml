@@ -1,0 +1,94 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mqtt-to-influx-config
+  namespace: default
+data:
+  MQTT_BROKER: "192.168.2.8"
+  MQTT_PORT: "30605"
+  INFLUX_ORG: "scheltoorg"
+  INFLUX_BUCKET: "plant"
+  INFLUX_URL: "http://192.168.2.8:31861"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mqtt-to-influx-secret
+  namespace: default
+type: Opaque
+data:
+  INFLUX_TOKEN: "TUlzOXpweG8tdHlBenJVSElWaW9QbnlX..." # Base64 kodierter Wert
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mqtt-to-influx
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mqtt-to-influx
+  template:
+    metadata:
+      labels:
+        app: mqtt-to-influx
+    spec:
+      containers:
+        - name: mqtt-to-influx
+          image: 192.168.2.8:30500/mqtt-to-influx
+          imagePullPolicy: Always
+          env:
+            - name: MQTT_BROKER
+              valueFrom:
+                configMapKeyRef:
+                  name: mqtt-to-influx-config
+                  key: MQTT_BROKER
+            - name: MQTT_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: mqtt-to-influx-config
+                  key: MQTT_PORT
+            - name: INFLUX_ORG
+              valueFrom:
+                configMapKeyRef:
+                  name: mqtt-to-influx-config
+                  key: INFLUX_ORG
+            - name: INFLUX_BUCKET
+              valueFrom:
+                configMapKeyRef:
+                  name: mqtt-to-influx-config
+                  key: INFLUX_BUCKET
+            - name: INFLUX_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: mqtt-to-influx-config
+                  key: INFLUX_URL
+            - name: INFLUX_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: mqtt-to-influx-secret
+                  key: INFLUX_TOKEN
+          ports:
+            - containerPort: 80 # Optional, falls der Container Ports exponiert
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "250m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mqtt-to-influx
+  namespace: default
+spec:
+  selector:
+    app: mqtt-to-influx
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80 # Der ContainerPort aus dem Deployment
+  type: ClusterIP
