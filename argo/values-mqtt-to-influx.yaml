@@ -17,7 +17,7 @@ metadata:
   namespace: default
 type: Opaque
 data:
-  INFLUX_TOKEN: "TTTB6OXpweG8tdHlBenJVSElWaW9QbnlXYmdGdnVrc2UxRjFWbENsc19wald6cDhHX3p4NEJac3RZVkY0TUNncnJjdUtSUlBOZmZ4cHZYUW5zeENPQ0E9PQ=="
+  INFLUX_TOKEN: TTTB6OXpweG8tdHlBenJVSElWaW9QbnlXYmdGdnVrc2UxRjFWbENsc19wald6cDhHX3p4NEJac3RZVkY0TUNncnJjdUtSUlBOZmZ4cHZYUW5zeENPQ0E9PQ==
 ---
 apiVersion: apps/v1
 kind: Deployment
