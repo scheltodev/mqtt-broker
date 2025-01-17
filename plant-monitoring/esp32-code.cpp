@@ -2,18 +2,13 @@
 #include <PubSubClient.h>
 
 // WLAN-Konfiguration
-const char* ssid = "WLAN-504009_EXT";          // Dein WLAN-SSID
-const char* password = "2764193621847697";  // Dein WLAN-Passwort
+const char* ssid = "WLAN-504009_EXT";          
+const char* password = "2764193621847697";  
 
 // MQTT-Broker-Konfiguration
-const char* mqtt_broker = "192.168.2.8";      // IP deines MQTT-Brokers
-const int mqtt_port = 30605;                  // NodePort des MQTT-Brokers
-const char* topic = "plants/sensor1";         // MQTT-Topic für den Sensor
-const char* mqtt_username = "";               // Falls nötig
-const char* mqtt_password = "";               // Falls nötig
-
-// Sensor-Pin-Konfiguration
-const int sensorPin = 34;  // Pin, an dem der Sensor angeschlossen ist
+const char* mqtt_broker = "192.168.2.8";      
+const int mqtt_port = 30605;                  
+const char* topic = "plants/sensor2";         
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -30,12 +25,12 @@ void connectToWiFi() {
 
 void connectToMQTT() {
   Serial.print("Verbinde mit MQTT-Broker...");
+  String clientId = "ESP32Client-" + String(random(0xffff), HEX);
   while (!client.connected()) {
-    if (client.connect("ESP32Client", mqtt_username, mqtt_password)) {
+    if (client.connect(clientId.c_str())) {
       Serial.println("Verbunden!");
     } else {
-      Serial.print("Fehler: ");
-      Serial.print(client.state());
+      Serial.printf("Fehler: %d\n", client.state());
       delay(2000);
     }
   }
@@ -43,12 +38,9 @@ void connectToMQTT() {
 
 void setup() {
   Serial.begin(115200);
-
-  // WLAN verbinden
   connectToWiFi();
-
-  // MQTT-Client konfigurieren
   client.setServer(mqtt_broker, mqtt_port);
+  client.setKeepAlive(60);
 }
 
 void loop() {
@@ -57,19 +49,14 @@ void loop() {
   }
   client.loop();
 
-  // Sensorwert lesen
-  int sensorValue = analogRead(sensorPin);
-
-  // Wert normalisieren (0-100%)
+  int sensorValue = analogRead(34);
   float moisturePercent = map(sensorValue, 0, 4095, 0, 100);
   moisturePercent = constrain(moisturePercent, 0, 100);
 
-  // Sensorwert an MQTT-Broker senden
   char payload[50];
   snprintf(payload, sizeof(payload), "%.2f", moisturePercent);
-  client.publish(topic, payload);
+  client.publish(topic, payload, false);
 
   Serial.printf("Wert gesendet: %s%% an Topic: %s\n", payload, topic);
-
-  delay(5000);  // Daten alle 5 Sekunden senden
+  delay(5000);
 }
