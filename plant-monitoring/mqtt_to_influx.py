@@ -1,6 +1,7 @@
 import paho.mqtt.client as mqtt
 from influxdb_client import InfluxDBClient, Point, WriteOptions, WritePrecision
 import os
+import json
 
 # Node-Port und Node-IP verwenden
 MQTT_BROKER = os.getenv("MQTT_BROKER", "192.168.2.8")  # Node-IP deines Clusters
@@ -20,21 +21,26 @@ except Exception as e:
     exit(1)
 
 # MQTT-Callback-Funktion
+
 def on_message(mqtt_client, userdata, msg):
     try:
         topic = msg.topic
-        payload = float(msg.payload.decode())
+        payload = json.loads(msg.payload.decode())  # JSON-Daten dekodieren
         sensor_id = topic.split("/")[-1]
-
+        
+        moisture = float(payload.get("moisture", 0))
+        status = payload.get("status", "Unbekannt")
+        
         # Punkt für die InfluxDB erstellen
         point = Point("plant_data") \
             .tag("sensor", sensor_id) \
-            .field("moisture", payload) \
+            .field("moisture", moisture) \
+            .field("status", status) \
             .time(None, WritePrecision.MS)
-
+        
         # Daten in die InfluxDB schreiben
         write_api.write(bucket=INFLUX_BUCKET, org=INFLUX_ORG, record=point)
-        print(f"Sensor {sensor_id}: {payload}% Feuchtigkeit gespeichert.")
+        print(f"Sensor {sensor_id}: {moisture}% Feuchtigkeit ({status}) gespeichert.")
     except ValueError as ve:
         print(f"Fehler beim Dekodieren der Nachricht: {ve}")
     except Exception as e:
