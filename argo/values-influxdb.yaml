@@ -5,11 +5,11 @@ metadata:
   namespace: monitoring
 spec:
   accessModes:
-    - ReadWriteOnce
+    - ReadWriteMany # NFS erlaubt mehrere Schreibzugriffe (RWX)
+  storageClassName: nfs-client # NFS-StorageClass setzen
   resources:
     requests:
       storage: 10Gi
-  storageClassName: local-path
 ---
 apiVersion: v1
 kind: ConfigMap
