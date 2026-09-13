@@ -85,7 +85,7 @@
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
-          "expr": "sensor_value{sensor_id=\"efeutute_feuchtigkeit\"}",
+          "expr": "max without(host) (sensor_value{sensor_id=\"efeutute_feuchtigkeit\"})",
           "instant": true,
           "legendFormat": "Bodenfeuchte",
           "refId": "A"
@@ -141,7 +141,7 @@
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
-          "expr": "sensor_value{sensor_id=\"efeutute_rohspannung\"}",
+          "expr": "max without(host) (sensor_value{sensor_id=\"efeutute_rohspannung\"})",
           "instant": true,
           "legendFormat": "Rohspannung",
           "refId": "A"
@@ -201,7 +201,7 @@
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
-          "expr": "sensor_value{sensor_id=\"esp32_wifi_signal\"}",
+          "expr": "max without(host) (sensor_value{sensor_id=\"esp32_wifi_signal\"})",
           "instant": true,
           "legendFormat": "WiFi Signal",
           "refId": "A"
@@ -267,7 +267,7 @@
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
-          "expr": "sensor_value{sensor_id=\"efeutute_feuchtigkeit\"}",
+          "expr": "max without(host) (sensor_value{sensor_id=\"efeutute_feuchtigkeit\"})",
           "legendFormat": "Efeutute Feuchte",
           "refId": "A"
         }
@@ -310,7 +310,7 @@
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
-          "expr": "sensor_value{sensor_id=\"efeutute_rohspannung\"}",
+          "expr": "max without(host) (sensor_value{sensor_id=\"efeutute_rohspannung\"})",
           "legendFormat": "Rohspannung (V)",
           "refId": "A"
         }
