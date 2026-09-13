@@ -18,13 +18,14 @@ esp32:
 # WLAN & OTA (Over-The-Air Updates)
 # ==============================================================================
 wifi:
+  power_save_mode: none
   networks:
-    - ssid: "MachuPichu_5GEXT"
-      password: "neuland1337"
-    - ssid: "MachuPichu"
-      password: "neuland1337"
     - ssid: "MachuPichu_2.4GEXT"
       password: "neuland1337"
+      priority: 10.0
+    - ssid: "MachuPichu"
+      password: "neuland1337"
+      priority: 5.0
 
   # Fallback-Hotspot, falls WLAN nicht erreichbar ist
   ap:
