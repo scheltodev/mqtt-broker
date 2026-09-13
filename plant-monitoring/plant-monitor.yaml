@@ -61,12 +61,12 @@ sensor:
   # ----------------------------------------------------------------------------
   # Pflanze 1: Efeutute (Pin 34)
   # ----------------------------------------------------------------------------
-  # Roh-Spannung (zum einfachen Ablesen der Kalibrierwerte im Browser/Log)
+  # 1. Hardware ADC liest die Rohspannung (V)
   - platform: adc
     pin: GPIO34
     name: "Efeutute Rohspannung"
-    id: efeutute_raw
-    attenuation: 11db
+    id: efeutute_voltage
+    attenuation: 12db
     update_interval: 60s
     unit_of_measurement: "V"
     accuracy_decimals: 2
@@ -75,31 +75,23 @@ sensor:
           window_size: 15
           send_every: 1
 
-  # Kalibrierte Feuchtigkeit in Prozent
-  - platform: adc
-    pin: GPIO34
+  # 2. Template-Sensor rechnet die Rohspannung in kalibrierte Feuchtigkeit (%) um
+  - platform: template
     name: "Efeutute Feuchtigkeit"
     id: efeutute_moisture
-    attenuation: 11db
-    update_interval: 60s
     unit_of_measurement: "%"
     accuracy_decimals: 1
     icon: "mdi:water-percent"
-    filters:
-      # 1. Rauschfilter (Median über 15 Messungen)
-      - median:
-          window_size: 15
-          send_every: 1
-      # 2. Kalibrierung: [Volt_Trocken -> 0.0%, Volt_Nass -> 100.0%]
-      # Passe die Spannungen an die Werte von 'Efeutute Rohspannung' an:
-      - calibrate_linear:
-          - 2.80 -> 0.0     # Trocken in der Luft
-          - 1.35 -> 100.0   # Nass im Wasserglas
-      # 3. Begrenzung auf 0% bis 100%
-      - lambda: |
-          if (x < 0.0) return 0.0;
-          if (x > 100.0) return 100.0;
-          return x;
+    lambda: |-
+      float v = id(efeutute_voltage).state;
+      if (isnan(v)) return {};
+      // Kalibrierung: 2.80V (Luft) = 0%, 1.35V (Wasser) = 100%
+      float v_dry = 2.80;
+      float v_wet = 1.35;
+      float pct = (v_dry - v) / (v_dry - v_wet) * 100.0;
+      if (pct < 0.0) pct = 0.0;
+      if (pct > 100.0) pct = 100.0;
+      return pct;
 
   # ----------------------------------------------------------------------------
   # Pflanze 2: Efeu (Pin 35)
@@ -107,8 +99,8 @@ sensor:
   - platform: adc
     pin: GPIO35
     name: "Efeu Rohspannung"
-    id: efeu_raw
-    attenuation: 11db
+    id: efeu_voltage
+    attenuation: 12db
     update_interval: 60s
     unit_of_measurement: "V"
     accuracy_decimals: 2
@@ -117,26 +109,21 @@ sensor:
           window_size: 15
           send_every: 1
 
-  - platform: adc
-    pin: GPIO35
+  - platform: template
     name: "Efeu Feuchtigkeit"
     id: efeu_moisture
-    attenuation: 11db
-    update_interval: 60s
     unit_of_measurement: "%"
     accuracy_decimals: 1
     icon: "mdi:water-percent"
-    filters:
-      - median:
-          window_size: 15
-          send_every: 1
-      - calibrate_linear:
-          - 2.80 -> 0.0
-          - 1.35 -> 100.0
-      - lambda: |
-          if (x < 0.0) return 0.0;
-          if (x > 100.0) return 100.0;
-          return x;
+    lambda: |-
+      float v = id(efeu_voltage).state;
+      if (isnan(v)) return {};
+      float v_dry = 2.80;
+      float v_wet = 1.35;
+      float pct = (v_dry - v) / (v_dry - v_wet) * 100.0;
+      if (pct < 0.0) pct = 0.0;
+      if (pct > 100.0) pct = 100.0;
+      return pct;
 
   # ----------------------------------------------------------------------------
   # Pflanze 3: Drachenbaum (Pin 32)
@@ -144,8 +131,8 @@ sensor:
   - platform: adc
     pin: GPIO32
     name: "Drachenbaum Rohspannung"
-    id: drachenbaum_raw
-    attenuation: 11db
+    id: drachenbaum_voltage
+    attenuation: 12db
     update_interval: 60s
     unit_of_measurement: "V"
     accuracy_decimals: 2
@@ -154,26 +141,21 @@ sensor:
           window_size: 15
           send_every: 1
 
-  - platform: adc
-    pin: GPIO32
+  - platform: template
     name: "Drachenbaum Feuchtigkeit"
     id: drachenbaum_moisture
-    attenuation: 11db
-    update_interval: 60s
     unit_of_measurement: "%"
     accuracy_decimals: 1
     icon: "mdi:water-percent"
-    filters:
-      - median:
-          window_size: 15
-          send_every: 1
-      - calibrate_linear:
-          - 2.80 -> 0.0
-          - 1.35 -> 100.0
-      - lambda: |
-          if (x < 0.0) return 0.0;
-          if (x > 100.0) return 100.0;
-          return x;
+    lambda: |-
+      float v = id(drachenbaum_voltage).state;
+      if (isnan(v)) return {};
+      float v_dry = 2.80;
+      float v_wet = 1.35;
+      float pct = (v_dry - v) / (v_dry - v_wet) * 100.0;
+      if (pct < 0.0) pct = 0.0;
+      if (pct > 100.0) pct = 100.0;
+      return pct;
 
   # ----------------------------------------------------------------------------
   # System-Diagnose: WLAN-Signal & Uptime
