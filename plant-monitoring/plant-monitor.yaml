@@ -18,8 +18,13 @@ esp32:
 # WLAN & OTA (Over-The-Air Updates)
 # ==============================================================================
 wifi:
-  ssid: "WLAN-504009_EXT"
-  password: "2764193621847697"
+  networks:
+    - ssid: "MachuPichu_5GEXT"
+      password: "neuland1337"
+    - ssid: "MachuPichu"
+      password: "neuland1337"
+    - ssid: "MachuPichu_2.4GEXT"
+      password: "neuland1337"
 
   # Fallback-Hotspot, falls WLAN nicht erreichbar ist
   ap:
@@ -44,7 +49,7 @@ logger:
 # MQTT Broker (Verbindung zu scanemall-infra)
 # ==============================================================================
 mqtt:
-  broker: 192.168.2.8
+  broker: 192.168.178.56
   port: 30605
   topic_prefix: plants
   birth_message:
@@ -59,7 +64,7 @@ mqtt:
 # ==============================================================================
 sensor:
   # ----------------------------------------------------------------------------
-  # Pflanze 1: Efeutute (Pin 34)
+  # Sensor: Efeutute (Pin 34)
   # ----------------------------------------------------------------------------
   # 1. Hardware ADC liest die Rohspannung (V)
   - platform: adc
@@ -67,7 +72,7 @@ sensor:
     name: "Efeutute Rohspannung"
     id: efeutute_voltage
     attenuation: 12db
-    update_interval: 60s
+    update_interval: 2s
     unit_of_measurement: "V"
     accuracy_decimals: 2
     filters:
@@ -79,6 +84,7 @@ sensor:
   - platform: template
     name: "Efeutute Feuchtigkeit"
     id: efeutute_moisture
+    update_interval: 2s
     unit_of_measurement: "%"
     accuracy_decimals: 1
     icon: "mdi:water-percent"
@@ -86,70 +92,6 @@ sensor:
       float v = id(efeutute_voltage).state;
       if (isnan(v)) return {};
       // Kalibrierung: 2.80V (Luft) = 0%, 1.35V (Wasser) = 100%
-      float v_dry = 2.80;
-      float v_wet = 1.35;
-      float pct = (v_dry - v) / (v_dry - v_wet) * 100.0;
-      if (pct < 0.0) pct = 0.0;
-      if (pct > 100.0) pct = 100.0;
-      return pct;
-
-  # ----------------------------------------------------------------------------
-  # Pflanze 2: Efeu (Pin 35)
-  # ----------------------------------------------------------------------------
-  - platform: adc
-    pin: GPIO35
-    name: "Efeu Rohspannung"
-    id: efeu_voltage
-    attenuation: 12db
-    update_interval: 60s
-    unit_of_measurement: "V"
-    accuracy_decimals: 2
-    filters:
-      - median:
-          window_size: 15
-          send_every: 1
-
-  - platform: template
-    name: "Efeu Feuchtigkeit"
-    id: efeu_moisture
-    unit_of_measurement: "%"
-    accuracy_decimals: 1
-    icon: "mdi:water-percent"
-    lambda: |-
-      float v = id(efeu_voltage).state;
-      if (isnan(v)) return {};
-      float v_dry = 2.80;
-      float v_wet = 1.35;
-      float pct = (v_dry - v) / (v_dry - v_wet) * 100.0;
-      if (pct < 0.0) pct = 0.0;
-      if (pct > 100.0) pct = 100.0;
-      return pct;
-
-  # ----------------------------------------------------------------------------
-  # Pflanze 3: Drachenbaum (Pin 32)
-  # ----------------------------------------------------------------------------
-  - platform: adc
-    pin: GPIO32
-    name: "Drachenbaum Rohspannung"
-    id: drachenbaum_voltage
-    attenuation: 12db
-    update_interval: 60s
-    unit_of_measurement: "V"
-    accuracy_decimals: 2
-    filters:
-      - median:
-          window_size: 15
-          send_every: 1
-
-  - platform: template
-    name: "Drachenbaum Feuchtigkeit"
-    id: drachenbaum_moisture
-    unit_of_measurement: "%"
-    accuracy_decimals: 1
-    icon: "mdi:water-percent"
-    lambda: |-
-      float v = id(drachenbaum_voltage).state;
-      if (isnan(v)) return {};
       float v_dry = 2.80;
       float v_wet = 1.35;
       float pct = (v_dry - v) / (v_dry - v_wet) * 100.0;
