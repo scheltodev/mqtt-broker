@@ -8,9 +8,9 @@ End-to-End IoT-Gießmonitoring mit **ESP32**, **ESPHome**, **Mosquitto**, **Vict
 
 1. **Hardware & Firmware:**
    - **ESP32-WROOM-32** mit ESPHome (`plant-monitor.yaml`).
-   - 3x **Capacitive Soil Moisture Sensor v1.2** an ADC1 (GPIO34, GPIO35, GPIO32).
+   - 1x **Capacitive Soil Moisture Sensor v1.2** an ADC1 (GPIO34) für die Efeutute.
    - 15x Median-Rauschfilter gegen ESP32-ADC-Schwankungen.
-   - Individuelle 2-Punkt-Spannungskalibrierung pro Pflanze.
+   - Individuelle 2-Punkt-Spannungskalibrierung ($V_{\text{dry}} = 2.23\,\text{V}$, $V_{\text{wet}} = 1.09\,\text{V}$).
    - Integrierter ESP32-Webserver für Live-Werte & drahtlose OTA-Updates.
 
 2. **Kubernetes-Infrastruktur (`scanemall-infra/k8s/apps/plant-monitoring`):**
@@ -20,7 +20,7 @@ End-to-End IoT-Gießmonitoring mit **ESP32**, **ESPHome**, **Mosquitto**, **Vict
    - **VictoriaMetrics:** Speichert Metriken effizient ohne zusätzliche InfluxDB.
 
 3. **Monitoring & Visualisierung:**
-   - **Grafana Dashboard** (`grafana_dashboard.json`) mit Live-Gauges, pflanzenspezifischen Schwellenwerten, Trocknungsverlauf und Sensor-Diagnose.
+   - **Grafana Dashboard** (`grafana_dashboard.json`) mit Live-Gauges, Efeutute-Schwellenwerten, Trocknungsverlauf und Sensor-Diagnose.
 
 ---
 
@@ -56,10 +56,9 @@ esphome run plant-monitor.yaml
 
 ## ⚖️ Schritt 3: Kalibrierung der Sensoren
 
-Jeder kapazitive Sensor hat fertigungsbedingte Toleranzen. In `plant-monitor.yaml` sind bereits getrennte Sensoren für die **Rohspannung (V)** angelegt:
-- `Efeutute Rohspannung`
-- `Efeu Rohspannung`
-- `Drachenbaum Rohspannung`
+In `plant-monitor.yaml` sind getrennte Sensoren angelegt:
+- `Efeutute Rohspannung` (zum Ablesen des Ist-Werts in V)
+- `Efeutute Feuchtigkeit` (kalibrierte Prozentanzeige)
 
 ### So ermittelst du die exakten Werte:
 1. Öffne im Browser die IP des ESP32 (oder beobachte den Serial Monitor).
