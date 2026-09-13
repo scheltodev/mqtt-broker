@@ -1,0 +1,196 @@
+# ==============================================================================
+# ESPHome Konfiguration — Pflanzen-Gießmonitoring 2.0
+# ==============================================================================
+# Hardware: ESP32-WROOM-32 mit 3x Capacitive Soil Moisture Sensor v1.2
+# ==============================================================================
+
+esphome:
+  name: plant-monitor
+  friendly_name: "Pflanzen-Gießmonitoring"
+  comment: "Bodenfeuchtemonitoring für Efeutute, Efeu und Drachenbaum"
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+# ==============================================================================
+# WLAN & OTA (Over-The-Air Updates)
+# ==============================================================================
+wifi:
+  ssid: "WLAN-504009_EXT"
+  password: "2764193621847697"
+
+  # Fallback-Hotspot, falls WLAN nicht erreichbar ist
+  ap:
+    ssid: "Plant-Monitor-Fallback"
+    password: "scanemall-setup"
+
+captive_portal:
+
+# Aktiviert drahtlose Firmware-Updates nach dem ersten USB-Flash
+ota:
+  platform: esphome
+
+# Webserver auf dem ESP32 (unter http://<esp32-ip> im Browser erreichbar)
+web_server:
+  port: 80
+
+# Serielle Schnittstelle für Debugging im Terminal
+logger:
+  level: INFO
+
+# ==============================================================================
+# MQTT Broker (Verbindung zu scanemall-infra)
+# ==============================================================================
+mqtt:
+  broker: 192.168.2.8
+  port: 30605
+  topic_prefix: plants
+  birth_message:
+    topic: plants/status
+    payload: "online"
+  will_message:
+    topic: plants/status
+    payload: "offline"
+
+# ==============================================================================
+# Sensoren
+# ==============================================================================
+sensor:
+  # ----------------------------------------------------------------------------
+  # Pflanze 1: Efeutute (Pin 34)
+  # ----------------------------------------------------------------------------
+  # Roh-Spannung (zum einfachen Ablesen der Kalibrierwerte im Browser/Log)
+  - platform: adc
+    pin: GPIO34
+    name: "Efeutute Rohspannung"
+    id: efeutute_raw
+    attenuation: 11db
+    update_interval: 60s
+    unit_of_measurement: "V"
+    accuracy_decimals: 2
+    filters:
+      - median:
+          window_size: 15
+          send_every: 1
+
+  # Kalibrierte Feuchtigkeit in Prozent
+  - platform: adc
+    pin: GPIO34
+    name: "Efeutute Feuchtigkeit"
+    id: efeutute_moisture
+    attenuation: 11db
+    update_interval: 60s
+    unit_of_measurement: "%"
+    accuracy_decimals: 1
+    icon: "mdi:water-percent"
+    filters:
+      # 1. Rauschfilter (Median über 15 Messungen)
+      - median:
+          window_size: 15
+          send_every: 1
+      # 2. Kalibrierung: [Volt_Trocken -> 0.0%, Volt_Nass -> 100.0%]
+      # Passe die Spannungen an die Werte von 'Efeutute Rohspannung' an:
+      - calibrate_linear:
+          - 2.80 -> 0.0     # Trocken in der Luft
+          - 1.35 -> 100.0   # Nass im Wasserglas
+      # 3. Begrenzung auf 0% bis 100%
+      - lambda: |
+          if (x < 0.0) return 0.0;
+          if (x > 100.0) return 100.0;
+          return x;
+
+  # ----------------------------------------------------------------------------
+  # Pflanze 2: Efeu (Pin 35)
+  # ----------------------------------------------------------------------------
+  - platform: adc
+    pin: GPIO35
+    name: "Efeu Rohspannung"
+    id: efeu_raw
+    attenuation: 11db
+    update_interval: 60s
+    unit_of_measurement: "V"
+    accuracy_decimals: 2
+    filters:
+      - median:
+          window_size: 15
+          send_every: 1
+
+  - platform: adc
+    pin: GPIO35
+    name: "Efeu Feuchtigkeit"
+    id: efeu_moisture
+    attenuation: 11db
+    update_interval: 60s
+    unit_of_measurement: "%"
+    accuracy_decimals: 1
+    icon: "mdi:water-percent"
+    filters:
+      - median:
+          window_size: 15
+          send_every: 1
+      - calibrate_linear:
+          - 2.80 -> 0.0
+          - 1.35 -> 100.0
+      - lambda: |
+          if (x < 0.0) return 0.0;
+          if (x > 100.0) return 100.0;
+          return x;
+
+  # ----------------------------------------------------------------------------
+  # Pflanze 3: Drachenbaum (Pin 32)
+  # ----------------------------------------------------------------------------
+  - platform: adc
+    pin: GPIO32
+    name: "Drachenbaum Rohspannung"
+    id: drachenbaum_raw
+    attenuation: 11db
+    update_interval: 60s
+    unit_of_measurement: "V"
+    accuracy_decimals: 2
+    filters:
+      - median:
+          window_size: 15
+          send_every: 1
+
+  - platform: adc
+    pin: GPIO32
+    name: "Drachenbaum Feuchtigkeit"
+    id: drachenbaum_moisture
+    attenuation: 11db
+    update_interval: 60s
+    unit_of_measurement: "%"
+    accuracy_decimals: 1
+    icon: "mdi:water-percent"
+    filters:
+      - median:
+          window_size: 15
+          send_every: 1
+      - calibrate_linear:
+          - 2.80 -> 0.0
+          - 1.35 -> 100.0
+      - lambda: |
+          if (x < 0.0) return 0.0;
+          if (x > 100.0) return 100.0;
+          return x;
+
+  # ----------------------------------------------------------------------------
+  # System-Diagnose: WLAN-Signal & Uptime
+  # ----------------------------------------------------------------------------
+  - platform: wifi_signal
+    name: "ESP32 WiFi Signal"
+    update_interval: 60s
+
+  - platform: uptime
+    name: "ESP32 Uptime"
+    update_interval: 300s
+
+# ==============================================================================
+# BATTERIE-MODUS (OPTIONAL):
+# Sobald du den ESP32 an Akku/Powerbank betreiben willst, kommentiere
+# diesen Block ein. Der ESP32 wacht alle 30 Minuten auf, sendet und schläft wieder.
+# ==============================================================================
+# deep_sleep:
+#   run_duration: 30s
+#   sleep_duration: 30min
